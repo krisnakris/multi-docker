@@ -1,0 +1,22 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t krisnakris/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run krisnakris/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t krisnakris/multi-client ./client
+  - docker build -t krisnakris/multi-nginx ./nginx
+  - docker build -t krisnakris/multi-server ./server
+  - docker build -t krisnakris/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push krisnakris/multi-client
+  - docker push krisnakris/multi-nginx
+  - docker push krisnakris/multi-server
+  - docker push krisnakris/multi-worker
+  
